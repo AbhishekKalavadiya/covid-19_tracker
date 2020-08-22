@@ -3,6 +3,8 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 # Covid-19 Tracker
 A Covid-19 tracker which gives active cases, deaths, and recoveries by worldwide and also by individual country. I used React hooks fetching data from Disease.sh website, material-UI for some design. GraphJs for the graph of death, cases, and recovery. And used React leaflet for the circle on Map for cases, deaths, recovery. Firebase is used to deploy the website.
 
+Link: https://covid-19-tracker-35c7e.web.app/
+
 ## Technology used
 ReactJs, React-leaflet, GraphJs, Firebase, Material-UI
 
