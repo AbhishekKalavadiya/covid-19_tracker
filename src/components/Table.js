@@ -1,5 +1,6 @@
 import React from 'react'
 import {sortData} from './utils'
+import numeral from 'numeral'
 import './Table.css'
 
 function Table({ countries }) {
@@ -12,7 +13,7 @@ function Table({ countries }) {
                 sortedCountries.map(({name, cases})=>(
                     <tr>
                         <td>{name}</td>
-                        <td><strong>{cases}</strong></td>
+                        <td><strong>{numeral(cases).format("0,0")}</strong></td>
                     </tr>
                 ))
             }

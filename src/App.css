@@ -19,6 +19,13 @@ body{
     flex:0.7;
 }
 
+.app__header > h1 {
+    color: red;
+    font-size: 2rem;
+}
+
+
+
 .app__stats{
     display: flex;
     align-items: center;

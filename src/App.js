@@ -5,6 +5,8 @@ import InfoBox from './components/InfoBox'
 import {Card, CardContent} from '@material-ui/core'
 import Table from './components/Table'
 import LineGraph from './components/LineGraph'
+import { prettyPrintStat } from './components/utils'
+import "leaflet/dist/leaflet.css";
 import './App.css';
 
 function App() {
@@ -12,6 +14,10 @@ function App() {
 	const [countries, setCountries] = useState([])
 	const [country, setCountry] = useState('worldwide')
 	const [countryInfo, setCountryInfo] = useState({})
+	const [mapCountries, setMapCountries] = useState([]);
+	const [mapCenter,setMapCenter] = useState({lat: 20.5937, lng: 78.9629})
+	const [mapZoom, setMapZoom] = useState(3)
+	const [casesType, setCasesType] = useState('cases')
 
 	useEffect(()=>{
 		fetch("https://disease.sh/v3/covid-19/all")
@@ -31,33 +37,37 @@ function App() {
 						value: country.countryInfo.iso2,
 						cases: country.cases
 					}))
-					console.log(data)
 				setCountries(countries)
+				setMapCountries(data);
 				})
 		}
 		getCountriesData()
 	}, [])
 
-	// console.log(countries)
 
 	const onCountryChange = async(e) => {
 		const countryCode = e.target.value
 
-		const url = countryCode === 'worldwide' 
-			? 'https://disease.sh/v3/covid-19/all'
-			: `https://disease.sh/v3/covid-19/countries/${countryCode}`
+		const url = (countryCode === 'worldwide' )
+			? (<div>
+				{await fetch("https://disease.sh/v3/covid-19/all")
+					.then(response => response.json())
+					.then(data => {
+						setCountryInfo(data)
+						setCountry('worldwide')
+						setMapCenter({lat: 20.5937, lng: 78.9629})
+					})}
+				</div>)
 
-		await fetch(url)
-			.then(response => response.json())
-			.then(data => {
-				
-				setCountry(countryCode)
-				setCountryInfo(data)
-		})
-		
+			: (<div>{await fetch(`https://disease.sh/v3/covid-19/countries/${countryCode}`)
+						.then(response => response.json())
+						.then(data => {
+							setCountry(countryCode)
+							setCountryInfo(data)
+							setMapCenter([data.countryInfo.lat, data.countryInfo.long])
+					})}
+				</div>)	
 	}
-	console.log("info >>>>", countryInfo )
-
 
 	return (
 		<div className="app">
@@ -72,7 +82,7 @@ function App() {
 							value={country}
 							variant='outlined'
 						>
-							<MenuItem value={country}>Worldwide</MenuItem>
+							<MenuItem value='worldwide'>Worldwide</MenuItem>
 							{
 								countries.map(country => (
 									<MenuItem value={country.value}>{country.name}</MenuItem>
@@ -83,21 +93,43 @@ function App() {
 				
 				</div>
 				<div className="app__stats">
-					<InfoBox title={"Active Cases"} cases={countryInfo.todayCases} total={countryInfo.cases}/>
-					<InfoBox title={"Recovered"} cases={countryInfo.todayRecovered} total={countryInfo.recovered}/>
-					<InfoBox title={"Deaths"} cases={countryInfo.todayDeaths} total={countryInfo.deaths}/>
+
+					<InfoBox 
+						isBlue
+						active={casesType==='cases'}
+						onClick={e => setCasesType('cases')}
+						title={"Active Cases"} 
+						cases={prettyPrintStat(countryInfo.todayCases)} 
+						total={prettyPrintStat(countryInfo.cases)}/>
+
+					<InfoBox
+						active={casesType==='recovered'}
+						onClick={e => setCasesType('recovered')} 
+						title={"Recovered"} 
+						cases={prettyPrintStat(countryInfo.todayRecovered)} 
+						total={prettyPrintStat(countryInfo.recovered)}/>
+
+					<InfoBox
+						isRed
+						active={casesType==='deaths'}
+						onClick={e => setCasesType('deaths')}	 
+						title={"Deaths"} 
+						cases={prettyPrintStat(countryInfo.todayDeaths)} 
+						total={prettyPrintStat(countryInfo.deaths)}/>
+
 				</div>
 
 				{/* Map */}
-				<Map />
+				<Map casesType={casesType} countries={mapCountries} center={mapCenter} zoom={mapZoom}/>
 			</div>
 
 			<Card className='app__right'>
 				<CardContent>
 					<h3>Live cases bby countries</h3>
 					<Table countries={countries}/>
-					<h3>world wide graph</h3>
-					<LineGraph />
+					<br /><hr/><br/>
+					<h3 className='app__graphTitle'>Worldwide New {casesType}</h3>
+					<LineGraph casesType={casesType}/>
 				</CardContent>
 			</Card>				
 
